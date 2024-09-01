@@ -20,13 +20,9 @@ public class FlyForward : MonoBehaviour, ISpell
 
     private float _currentTime = 0f;
     private IDestroyable _destroyable;
+    private Transform _caster;
 
     Element ISpell.Element => _element;
-
-    private void Start()
-    {
-        Execute();
-    }
 
     public void Execute()
     {
@@ -73,6 +69,8 @@ public class FlyForward : MonoBehaviour, ISpell
 
     private void OnTriggerEnter(Collider other)
     {
+        if (other.transform.root ==  _caster) return;
+
         if (((1 << other.gameObject.layer) & _destroyLayers) != 0)
         {
             _destroyable.Destroy();
@@ -108,5 +106,10 @@ public class FlyForward : MonoBehaviour, ISpell
                 _destroyable.Destroy();
             }
         }
+    }
+
+    public void SetCaster(Transform caster)
+    {
+        _caster = caster;
     }
 }

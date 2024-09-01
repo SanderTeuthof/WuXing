@@ -13,5 +13,6 @@ public enum Element
     Water, 
     Earth, 
     Wood, 
-    Metal
+    Metal, 
+    Player
 }

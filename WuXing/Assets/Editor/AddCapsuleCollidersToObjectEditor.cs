@@ -1,12 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 public class AddCapsuleCollidersToObjectEditor : EditorWindow
 {
     private Vector3 colliderSize = new Vector3(0.1f, 0.5f, 0.1f); // Default size for the capsule colliders
-    private bool alignWithBone = true; // Align colliders with bone direction
+    private int selectedAxis = 1; // Default to aligning with the Y axis
+    private readonly string[] axisOptions = { "X", "Y", "Z" }; // Axis options
 
     [MenuItem("Tools/Add Capsule Colliders to Selected Objects")]
     public static void ShowWindow()
@@ -19,7 +18,7 @@ public class AddCapsuleCollidersToObjectEditor : EditorWindow
         GUILayout.Label("Capsule Collider Settings", EditorStyles.boldLabel);
 
         colliderSize = EditorGUILayout.Vector3Field("Collider Size", colliderSize);
-        alignWithBone = EditorGUILayout.Toggle("Align with Bone", alignWithBone);
+        selectedAxis = EditorGUILayout.Popup("Align with Axis", selectedAxis, axisOptions);
 
         if (GUILayout.Button("Add Colliders"))
         {
@@ -40,28 +39,14 @@ public class AddCapsuleCollidersToObjectEditor : EditorWindow
         CapsuleCollider collider = bone.gameObject.AddComponent<CapsuleCollider>();
         bone.gameObject.AddComponent<HitDetection>();
 
-        // Set collider size (you can adjust this based on your needs)
+        // Set collider size
         collider.height = colliderSize.y;
         collider.radius = colliderSize.x / 2;
 
-        if (alignWithBone)
-        {
-            collider.direction = GetColliderDirection(bone);
-        }
-    }
+        // Set collider alignment
+        collider.direction = selectedAxis;
 
-    private int GetColliderDirection(Transform bone)
-    {
-        Vector3 localUp = bone.InverseTransformDirection(Vector3.up);
-        Vector3 localForward = bone.InverseTransformDirection(Vector3.forward);
-
-        if (Mathf.Abs(localUp.y) > Mathf.Abs(localForward.y))
-        {
-            return 1; // Align with Y axis (common for humanoid bones)
-        }
-        else
-        {
-            return 2; // Align with Z axis
-        }
+        // Set collider to trigger mode
+        collider.isTrigger = true;
     }
 }

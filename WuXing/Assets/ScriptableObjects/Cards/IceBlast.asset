@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bbdfd105cfda7f4a970efb8b21dd33b, type: 3}
+  m_Name: IceBlast
+  m_EditorClassIdentifier: 
+  _element: 1
+  _cardRepresentation: {fileID: 7642968642345507073, guid: b092e2ebd08b6b04f8f9ae494ddba059,
+    type: 3}
+  _useSpell: {fileID: 11400000, guid: 1de3e8a5dc1a40648a894aed4704369d, type: 2}
+  _discardSpell: {fileID: 11400000, guid: 5d8318074d7d6fe42a8ca962cd9bdec9, type: 2}

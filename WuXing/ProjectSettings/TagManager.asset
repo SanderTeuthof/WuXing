@@ -13,9 +13,9 @@ TagManager:
   - UI
   - DetectionSphere
   - HitColliders
-  - 
-  - 
-  - 
+  - Spell
+  - Enemy
+  - Player
   - 
   - 
   - 

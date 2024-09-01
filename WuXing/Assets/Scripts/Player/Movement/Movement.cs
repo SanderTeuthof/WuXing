@@ -1,26 +1,22 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(CharacterController), typeof(PlayerAnimationHandler))]
 public class Movement : MonoBehaviour
 {
-    // Components
-    private CharacterController _controller;
-    private Transform _cam;
-    private PlayerAnimationHandler _animator;
-
-    // Horizontal movement logic
     [SerializeField]
     private float _speed = 10f;
-
+    [SerializeField]
+    private float _dashSpeedMulti = 2f;
+    [SerializeField]
+    private float _dashTime = 1f;
     [SerializeField]
     private InputActionReference _input;
-
     [SerializeField]
     private float _rotationSpeed = 0.1f;
 
-    // Vertical movement logic
     [SerializeField]
     private float _gravityMultiplier = 1.2f;
 
@@ -35,17 +31,13 @@ public class Movement : MonoBehaviour
         {
             if (value != _fallingValue)
             {
+                _fallingValue = value;
+                _animator.UpdateFallingAnimation(value);
+
                 if (value)
                 {
-                    _fallingValue = value;
                     StartFalling();
-                    return;
                 }
-                else
-                {
-                    //_animator.SetAnimationBool(PlayerAnimationBools.Falling, false);
-                }
-                _fallingValue = value;
             }
         }
     }
@@ -55,11 +47,21 @@ public class Movement : MonoBehaviour
     private Transform _target;
     private bool _lockedOn = false;
 
+    private bool _dashing;
+
+    private CharacterController _controller;
+    private Transform _cam;
+    private PlayerAnimationHandler _animator;
+    private LockOn _lockOn;
+
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
         _animator = GetComponent<PlayerAnimationHandler>();
         _cam = Camera.main.transform;
+        _lockOn = GetComponent<LockOn>();
+        _lockOn.LockOnStart += LockOnStart;
+        _lockOn.LockOnStop += LockOnStop;
     }
 
     private void Update()
@@ -68,16 +70,9 @@ public class Movement : MonoBehaviour
         bool isMoving = _movement.magnitude >= 0.1f;
 
         if (isMoving)
-        {
-            // _animator.SetAnimationBool(PlayerAnimationBools.Running, true);
             RotateTowardsMovement();
-        }
         else
-        {
-            // _animator.SetAnimationBool(PlayerAnimationBools.Running, false);
-        }
-
-        
+            _animator.StopMoving();        
 
         ApplyGravity();
         ExecuteMovement();
@@ -85,8 +80,11 @@ public class Movement : MonoBehaviour
 
     private void GetHorizontalInput()
     {
+        if (_dashing) 
+            return;
+
         Vector2 inputDirection = _input.action.ReadValue<Vector2>();
-        
+
         Vector3 cameraForward = _cam.forward;
         cameraForward.y = 0;
         cameraForward = cameraForward.normalized;
@@ -101,8 +99,8 @@ public class Movement : MonoBehaviour
 
     private void RotateTowardsMovement()
     {
-        //Calculate moving direction to set feet moving
         Directions moveDirection = GetClosestDirection(_movement.normalized);
+        _animator.UpdateMovementAnimations(moveDirection);
 
         Quaternion targetRotation;
         if (_lockedOn && _target != null)
@@ -178,6 +176,42 @@ public class Movement : MonoBehaviour
         return _controller.velocity;
     }
 
+    public void StartDash(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.performed || _dashing)
+            return;
+
+        StartCoroutine(StartDashing());
+    }
+
+    private IEnumerator StartDashing()
+    {
+        _dashing = true;
+
+        Vector2 inputDirection = _input.action.ReadValue<Vector2>();
+
+        Vector3 cameraForward = _cam.forward;
+        cameraForward.y = 0;
+        cameraForward = cameraForward.normalized;
+
+        Vector3 cameraSidewards = Vector3.Cross(cameraForward, Vector3.up).normalized;
+
+        float horizontalInput = -inputDirection.x;
+        float verticalInput = inputDirection.y;
+
+        Vector3 direction = _speed * _dashSpeedMulti * (cameraForward * verticalInput + cameraSidewards * horizontalInput).normalized;
+
+        float time = 0;
+        while (time < _dashTime)
+        {
+            _controller.Move(direction * Time.deltaTime);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        _dashing = false;
+    }
+
     private Directions GetClosestDirection(Vector3 direction)
     {
         Directions closestDirection = Directions.None;
@@ -207,15 +241,29 @@ public class Movement : MonoBehaviour
         switch (directionIndex)
         {
             case 0:
-                return -transform.forward;
-            case 1:
                 return transform.forward;
+            case 1:
+                return -transform.forward;
             case 2:
-                return transform.right;
-            case 3:
                 return -transform.right;
+            case 3:
+                return transform.right;
             default:
                 return Vector3.zero;
         }
+    }
+
+    private void LockOnStop(object sender, EventArgs e)
+    {
+        _target = null;
+        _lockedOn = false;
+    }
+
+    private void LockOnStart(object sender, Transform e)
+    {
+        if (e == null) return;
+
+        _lockedOn = true;
+        _target = e;
     }
 }

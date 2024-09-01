@@ -5,6 +5,7 @@ using UnityEngine.AI;
 
 public static class NavMeshAgentExtension
 {
+    
     //Option to set destination and stop the coroutine
     public static bool SetDestination(this NavMeshAgent agent, MonoBehaviour sender, Vector3 target, bool stopFollowCoroutine = true)
     {
@@ -19,21 +20,21 @@ public static class NavMeshAgentExtension
     }
 
     // Follow based on frames
-    public static void FollowTransform(this NavMeshAgent agent, MonoBehaviour sender, Transform target, int updateEveryFrames = 10)
+    public static void FollowTransform(this NavMeshAgent agent, MonoBehaviour sender, Transform target, float stoppingDistance, int updateEveryFrames = 10)
     {
         sender.StopCoroutine("FollowTargetCoroutine");
-        sender.StartCoroutine(FollowTargetCoroutine(agent, target, updateEveryFrames));
+        sender.StartCoroutine(FollowTargetCoroutine(agent, target, stoppingDistance, updateEveryFrames));
     }
 
     // Follow based on time interval
-    public static void FollowTransform(this NavMeshAgent agent, MonoBehaviour sender, Transform target, float updateIntervalSeconds)
+    public static void FollowTransform(this NavMeshAgent agent, MonoBehaviour sender, Transform target, float stoppingDistance, float updateIntervalSeconds)
     {
         sender.StopCoroutine("FollowTargetCoroutine");
-        sender.StartCoroutine(FollowTargetCoroutine(agent, target, updateIntervalSeconds));
+        sender.StartCoroutine(FollowTargetCoroutine(agent, target, stoppingDistance, updateIntervalSeconds));
     }
 
     // Coroutine for following based on frames
-    private static IEnumerator FollowTargetCoroutine(NavMeshAgent agent, Transform target, int updateEveryFrames)
+    private static IEnumerator FollowTargetCoroutine(NavMeshAgent agent, Transform target, float stoppingDistance, int updateEveryFrames)
     {
         while (agent != null && target != null)
         {
@@ -44,8 +45,9 @@ public static class NavMeshAgentExtension
 
             agent.SetDestination(target.position);
 
-            if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
+            if (agent.remainingDistance <= stoppingDistance && !agent.pathPending)
             {
+                agent.SetDestination(agent.transform.position);
                 yield break;
             }
 
@@ -58,7 +60,7 @@ public static class NavMeshAgentExtension
     }
 
     // Coroutine for following based on time interval
-    private static IEnumerator FollowTargetCoroutine(NavMeshAgent agent, Transform target, float updateIntervalSeconds)
+    private static IEnumerator FollowTargetCoroutine(NavMeshAgent agent, Transform target, float stoppingDistance, float updateIntervalSeconds)
     {
         while (agent != null && target != null)
         {
@@ -69,9 +71,10 @@ public static class NavMeshAgentExtension
 
             agent.SetDestination(target.position);
 
-            if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
+            if (agent.remainingDistance <= stoppingDistance && !agent.pathPending)
             {
-                yield break;
+                agent.SetDestination(agent.transform.position);
+                yield break; break;
             }
 
             // Wait for the specified time interval

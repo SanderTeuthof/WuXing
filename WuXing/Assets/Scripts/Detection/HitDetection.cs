@@ -11,9 +11,17 @@ public class HitDetection : MonoBehaviour
     private float _attackPower;
 
     private bool _attacking = false;
+    private ObjectInfo _objectInfo;
 
     private List<Transform> _damagedEnemiesList = new();
-    
+
+    private void Awake()
+    {
+        _objectInfo = transform.root.GetComponent<ObjectInfo>();
+        Collider collider = GetComponent<Collider>();
+        collider.isTrigger = true;
+    }
+
     public void SetAttacking(bool attackState, bool penetrating, float attackPower)
     {
         _attacking = attackState;
@@ -48,8 +56,10 @@ public class HitDetection : MonoBehaviour
         if (ColliderHit.DamageMultiplier == 0)
             return; // if it deals no damage but is penetrable just ignore it
 
-        //thingHit.do damage to correct component with this attackpower and the other damage multiplier
-        Debug.Log(this + " Dealt Damage!");
+        HealthManager health = thingHit.GetComponent<HealthManager>();
+
+        health.TakeDamage(_attackPower * ColliderHit.DamageMultiplier, _objectInfo.ElementAllignment);
+        
         _damagedEnemiesList.Add(thingHit);
 
     }

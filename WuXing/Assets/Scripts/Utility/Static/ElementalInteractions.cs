@@ -10,11 +10,17 @@ public static class ElementalInteractions
         new Interaction(Element.Wood, Element.Earth, 2.0f),
         new Interaction(Element.Metal, Element.Wood, 2.0f),
 
-        new Interaction(Element.Metal, Element.Fire, 1.0f),
-        new Interaction(Element.Fire, Element.Water, 1.0f),
-        new Interaction(Element.Water, Element.Earth, 1.0f),
-        new Interaction(Element.Earth, Element.Wood, 1.0f),
-        new Interaction(Element.Wood, Element.Metal, 1.0f)
+        new Interaction(Element.Metal, Element.Fire, 1.1f),
+        new Interaction(Element.Fire, Element.Water, 1.1f),
+        new Interaction(Element.Water, Element.Earth, 1.1f),
+        new Interaction(Element.Earth, Element.Wood, 1.1f),
+        new Interaction(Element.Wood, Element.Metal, 1.1f),
+
+        new Interaction(Element.Metal, Element.Player, 1.0f),
+        new Interaction(Element.Fire, Element.Player, 1.0f),
+        new Interaction(Element.Water, Element.Player, 1.0f),
+        new Interaction(Element.Earth, Element.Player, 1.0f),
+        new Interaction(Element.Wood, Element.Player, 1.0f)
     };
 
     private static readonly List<Interaction> _damageInteractions = new List<Interaction>

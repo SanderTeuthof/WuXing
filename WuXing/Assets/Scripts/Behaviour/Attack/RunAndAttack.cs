@@ -103,7 +103,7 @@ public class RunAndAttack : MonoBehaviour, INPCAttackState
 
         // Start moving towards the target
         _navMeshAgent.isStopped = false;
-        _navMeshAgent.SetDestination(target.position);
+        _navMeshAgent.FollowTransform(this, target, _stopDistance);
 
         yield return null; //give agent time to calculate distance
 
@@ -112,9 +112,6 @@ public class RunAndAttack : MonoBehaviour, INPCAttackState
         {
             yield return null; // Wait for the next frame
         }
-
-        // Stop the NavMeshAgent
-        _navMeshAgent.SetDestination(transform.position);
 
         _manager.AnimationHanler.SetAnimationBool(_animationNames[0], false);
         _manager.AnimationHanler.SetAnimationBool(_animationNames[1], true);

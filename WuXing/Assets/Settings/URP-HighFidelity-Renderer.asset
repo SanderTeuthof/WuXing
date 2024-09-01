@@ -142,21 +142,21 @@ MonoBehaviour:
     graphicsFormat: 4
     canShowInSceneView: 1
     useFlow: 1
-    SigmaC: 0.85
-    SigmaM: 3.26
-    lineConvolutionStepSizes: {x: 1, y: 1}
+    SigmaC: 5.06
+    SigmaM: 1.9
+    lineConvolutionStepSizes: {x: 2, y: 2}
     calcDiffBeforeConvolution: 0
-    SigmaE: 1.41
-    stdevScaleK: 1.49
-    SharpnessTau: 28.8
+    SigmaE: 1
+    stdevScaleK: 1.52
+    SharpnessTau: 51.7
     thresholdMode: 2
-    quantizerStep: 5
-    whitePoint: 5.1
-    softThresholdPhi: 1.13
+    quantizerStep: 3
+    whitePoint: 22.8
+    softThresholdPhi: 0.76
     invert: 0
     smoothEdge: 1
-    SigmaA: 1.12
-    edgeSmoothStepSizes: {x: 1, y: 1}
+    SigmaA: 4.65
+    edgeSmoothStepSizes: {x: 3, y: 3}
     enableHatching: 0
     hatchTexture: {fileID: 0}
     hatchResolution: 0.57
@@ -176,8 +176,8 @@ MonoBehaviour:
     enableColoredPencil: 0
     brightnessOffset: 0
     saturation: 1
-    termStrength: 0.99
-    blendMode: 0
+    termStrength: 1
+    blendMode: 2
     minColor: {r: 0.047169805, g: 0.047169805, b: 0.047169805, a: 1}
     maxColor: {r: 0.5471698, g: 0.5471698, b: 0.5471698, a: 1}
     blendStrength: 1

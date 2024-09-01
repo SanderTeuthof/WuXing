@@ -6,9 +6,9 @@ using UnityEngine;
 public class HealthManager : MonoBehaviour
 {
     [SerializeField]
-    private float _maxHealth = 10;
+    protected float _maxHealth = 10;
 
-    private float _health;
+    protected float _health;
 
     private IDestroyable _destroyable;
     private ObjectInfo _objectInfo;
@@ -20,29 +20,25 @@ public class HealthManager : MonoBehaviour
         _objectInfo = GetComponent<ObjectInfo>();
     }
 
-    public void TakeDamage(float damage, Element incomingElement)
+    public virtual void TakeDamage(float damage, Element incomingElement)
     {
+        Debug.Log("Damage taken!");
         float actualDamage = damage * ElementalInteractions.GetDamageMultiplier(incomingElement, _objectInfo.ElementAllignment);
         _health = Mathf.Max(0, _health - actualDamage);
 
-        ChechDeath();
+        CheckDeath();
     }
 
-    public void Heal(float healAmount)
+    public virtual void Heal(float healAmount)
     {
         _health = Mathf.Min(_maxHealth, _health + healAmount);
     }
 
-    private void ChechDeath()
+    private void CheckDeath()
     {
         if (_health == 0)
         {
             _destroyable.Destroy();
         }
     }
-}
-
-public interface IDestroyable
-{
-    void Destroy();   
 }

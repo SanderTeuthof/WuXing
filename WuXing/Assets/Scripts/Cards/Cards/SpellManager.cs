@@ -1,11 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 
+[RequireComponent(typeof(PlayerAnimationHandler))]
 public class SpellManager : MonoBehaviour
 {
     [SerializeField]
@@ -20,13 +19,18 @@ public class SpellManager : MonoBehaviour
     private IntReference _activeCard;
     [SerializeField]
     private Transform _spawnLocation;
+    [SerializeField]
+    private GameEvent _handChanged;
 
 
     [HideInInspector]
     public NextSpellStrengthenEffects NextSpellStrengthenEffects = new();
 
+    private PlayerAnimationHandler _animator;
+
     private void Start()
     {
+        _animator = GetComponent<PlayerAnimationHandler>();
         NextSpellStrengthenEffects.Reset();
         FillHand();
     }
@@ -63,6 +67,18 @@ public class SpellManager : MonoBehaviour
         SelectCardBySteps(-2);
     }
 
+    public void Scroll(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.performed)
+            return;
+
+        if (ctx.action.ReadValue<Vector2>().y > 0)
+            SelectCardBySteps(-1);
+        else
+            SelectCardBySteps(1);
+        
+    }
+
     public void SetSelectedCardToNumber(InputAction.CallbackContext ctx)
     {
         if (!ctx.performed)
@@ -89,10 +105,14 @@ public class SpellManager : MonoBehaviour
         if (!ctx.performed)
             return;
 
+        _animator.TriggerCastSpell();
+
         _hand.Cards[_activeCard.value].UseSpell.Execute(this);
         NextSpellStrengthenEffects.Reset();
-        MoveCard(_hand, _used, _hand.Cards[_activeCard.value]);
+        _handChanged.Raise(this, CardActions.Used);
+        MoveCard(_hand, _used, _activeCard.value);
         FillHand();
+        UpdateActiveIndex();
     }
 
     public void DiscardCard(InputAction.CallbackContext ctx)
@@ -133,7 +153,8 @@ public class SpellManager : MonoBehaviour
         }
 
         discardSpell.Execute(this);
-        MoveCard(_hand, _used, card);
+        _handChanged.Raise(this, CardActions.Discarded);
+        MoveCard(_hand, _used, _activeCard.value);
         UpdateActiveIndex();
     }
 
@@ -143,7 +164,8 @@ public class SpellManager : MonoBehaviour
         {
             if (_deck.Cards.Count == 0)
                 FillDeck();
-            MoveCard(_deck, _hand, _deck.Cards.Last());
+            MoveCard(_deck, _hand, 0);
+            _handChanged.Raise(this, CardActions.Added);
         }
     }
 
@@ -158,17 +180,15 @@ public class SpellManager : MonoBehaviour
         {
             if (_deck.Cards.Count == 0)
                 FillDeck();
-            MoveCard(_deck, _hand, _deck.Cards.Last());
+            MoveCard(_deck, _hand, 0);
+            _handChanged.Raise(this, CardActions.Added);
         }
     }
 
-    private void MoveCard(CardCollection fromPile, CardCollection toPile, Card card)
+    private void MoveCard(CardCollection fromPile, CardCollection toPile, int cardIndex)
     {
-        if (!fromPile.Cards.Contains(card))
-            return;
-
-        fromPile.Cards.Remove(card);
-        toPile.Cards.Add(card);
+        toPile.Cards.Add(fromPile.Cards[cardIndex]);
+        fromPile.Cards.RemoveAt(cardIndex);
     }
 
     private void FillDeck()
@@ -187,14 +207,14 @@ public class SpellManager : MonoBehaviour
 
         int newIndex = (_activeCard.value + steps) % cardCount;
         if (newIndex < 0)
-            newIndex += cardCount; // Handle negative index
+            newIndex += cardCount;
 
         _activeCard.SetValue(newIndex);
     }
 
     private void UpdateActiveIndex()
     {
-        if (_activeCard.value >= _hand.Cards.Count)
+        while (_activeCard.value >= _hand.Cards.Count)
             _activeCard.SetValue(_hand.Cards.Count - 1);
     }
 }

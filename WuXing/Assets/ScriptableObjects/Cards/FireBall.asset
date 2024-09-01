@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7bbdfd105cfda7f4a970efb8b21dd33b, type: 3}
   m_Name: FireBall
   m_EditorClassIdentifier: 
-  element: 0
-  useSpell: {fileID: 11400000, guid: 49a5360e0ecbbf444a88ac7686696d72, type: 2}
-  discardSpell: {fileID: 11400000, guid: 97543ef0b8411b546a2b62b673230902, type: 2}
+  _element: 0
+  _cardRepresentation: {fileID: 7642968642345507073, guid: cc6690fe47b3b014d9202f00f5fa6bfa,
+    type: 3}
+  _useSpell: {fileID: 11400000, guid: 49a5360e0ecbbf444a88ac7686696d72, type: 2}
+  _discardSpell: {fileID: 11400000, guid: 97543ef0b8411b546a2b62b673230902, type: 2}

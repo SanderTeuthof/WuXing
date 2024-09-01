@@ -20,5 +20,6 @@ public class DeckManager : MonoBehaviour
         _used.Cards.Clear();
 
         _deck.Cards.AddRange(_deckOriginal.Cards);
+        _deck.ShuffleCards();
     }
 }

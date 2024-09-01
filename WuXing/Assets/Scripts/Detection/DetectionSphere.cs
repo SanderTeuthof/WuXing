@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody), typeof(SphereCollider))]
 public class DetectionSphere : MonoBehaviour
 {
     [SerializeField]
@@ -23,14 +24,14 @@ public class DetectionSphere : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (other.transform.root == transform.root) 
+            return;
+
         if (((1 << other.gameObject.layer) & _layersToLookFor) != 0)
         {
-            // Add to the list if not already present
             if (!DetectedObjects.Contains(other.gameObject))
             {
-                Debug.Log("ObjectFound " + other.gameObject);
                 DetectedObjects.Add(other.gameObject);
-                // Invoke the EnemyEntered event
                 ObjectEntered?.Invoke(this, other.gameObject);
             }
         }
@@ -40,7 +41,6 @@ public class DetectionSphere : MonoBehaviour
         if (DetectedObjects.Contains(other.gameObject))
         {
             DetectedObjects.Remove(other.gameObject);
-            // Invoke the EnemyExited event
             ObjectExited?.Invoke(this, other.gameObject);
         }
     }

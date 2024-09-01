@@ -14,11 +14,13 @@ public class CameraControls : MonoBehaviour
     [SerializeField] 
     private float _speedVertical;
     [SerializeField, Tooltip("This is in radians"), Range(-3.14f, 0)]
-    private float _minVerticalRotation = -30;
+    private float _minVerticalRotation = -0.5236f;
     [SerializeField, Tooltip("This is in radians"), Range(0,3.14f)] 
-    private float _maxVerticalRotation = 30;
+    private float _maxVerticalRotation = 0.5236f;
     [SerializeField]
     private InputActionReference _lookInput;
+    [SerializeField]
+    private Transform _lookAtTarget;
 
     private Vector2 _mouseInput;
 
@@ -30,8 +32,11 @@ public class CameraControls : MonoBehaviour
     private CinemachineComposer _camComposer;
     private Vector3 _lookPoint;
 
+    [SerializeField]
+    private LockOn _lockOn;
     private bool _lockedOn;
     private Transform _target;
+    private Transform _originTarget;
 
     private void Start()
     {
@@ -40,6 +45,9 @@ public class CameraControls : MonoBehaviour
         _originalCameraOffset = new Vector2(_camTransposer.m_FollowOffset.y, _camTransposer.m_FollowOffset.z);
         _camComposer = _camera.GetCinemachineComponent<CinemachineComposer>();
         _lookPoint = _camComposer.m_TrackedObjectOffset;
+        _originTarget = _camera.LookAt;
+        _lockOn.LockOnStart += LockOnStart;
+        _lockOn.LockOnStop += LockOnStop;
         StartCoroutine(DoCameraLogic());
     }
 
@@ -47,6 +55,23 @@ public class CameraControls : MonoBehaviour
     {
         while (true) 
         {
+            Vector3 newOffset;
+            if (_lockedOn && _target != null)
+            {
+                newOffset = (_target.position - transform.position + _lookPoint) / 2;
+                _lookAtTarget.position = newOffset + _originTarget.position;
+
+                Vector3 directionToTarget = _lookAtTarget.position - transform.position;
+                Quaternion targetRotation = Quaternion.LookRotation(directionToTarget);
+
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * _speedHorizontal);
+
+                yield return null;
+                continue;
+            }
+            if (_lockedOn && _target == null)
+                LockOnStop(this, EventArgs.Empty);
+
             _mouseInput = _lookInput.action.ReadValue<Vector2>();
             if (_mouseInput.sqrMagnitude < 0.1)
             {
@@ -54,24 +79,17 @@ public class CameraControls : MonoBehaviour
                 continue;
             }
 
-            if (_lockedOn && _target != null)
-            {
-                Vector3 newOffset = (_target.position - transform.position + _lookPoint) / 2;
-                _camComposer.m_TrackedObjectOffset = newOffset;
-            }
-            else
-            {
-                float horizontalRotation = _mouseInput.x * _speedHorizontal * Time.deltaTime;
-                transform.Rotate(Vector3.up, horizontalRotation);
+            float horizontalRotation = _mouseInput.x * _speedHorizontal * Time.deltaTime;
+            transform.Rotate(Vector3.up, horizontalRotation);
 
-                _verticalRotation += _mouseInput.y * _speedVertical * Time.deltaTime;
+            _verticalRotation += _mouseInput.y * _speedVertical * Time.deltaTime;
 
-                _verticalRotation = Mathf.Clamp(_verticalRotation, _minVerticalRotation, _maxVerticalRotation);
+            _verticalRotation = Mathf.Clamp(_verticalRotation, _minVerticalRotation, _maxVerticalRotation);
 
-                Vector2 newRotation = RotationMatrix(_verticalRotation, _originalCameraOffset);
-                Vector3 newOffset = new Vector3(0, newRotation.x, newRotation.y);
-                _camTransposer.m_FollowOffset = newOffset;
-            }
+            Vector2 newRotation = RotationMatrix(_verticalRotation, _originalCameraOffset);
+            newOffset = new Vector3(0, newRotation.x, newRotation.y);
+            _camTransposer.m_FollowOffset = newOffset;
+            
 
             yield return null;
         }
@@ -91,19 +109,23 @@ public class CameraControls : MonoBehaviour
         return new Vector2(x, y);
     }
 
-    public void SetLockOnTarget(Component sender, object data)
+    private void LockOnStop(object sender, EventArgs e)
     {
-        Transform target = data as Transform;
+        _target = null;
+        _lockedOn = false;
+        _camera.LookAt = _originTarget;
+        _camComposer.m_TrackedObjectOffset = _lookPoint;
+        _camTransposer.m_FollowOffset = new Vector3(0, _originalCameraOffset.x, _originalCameraOffset.y);
+    }
 
-        if (target == null)
-        {
-            _lockedOn = false;
-            _camComposer.m_TrackedObjectOffset = _lookPoint;
-            _camTransposer.m_FollowOffset = _originalCameraOffset;
-            return;
-        }
+    private void LockOnStart(object sender, Transform e)
+    {
+        if (e == null) return;
+
         _lockedOn = true;
-        _target = target;
-        _camTransposer.m_FollowOffset = _originalCameraOffset;
+        _target = e;
+        _camera.LookAt = _lookAtTarget;
+        _camComposer.m_TrackedObjectOffset = Vector3.zero;
+        _camTransposer.m_FollowOffset = new Vector3(0, _originalCameraOffset.x, _originalCameraOffset.y);
     }
 }
